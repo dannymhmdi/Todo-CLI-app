@@ -1,0 +1,60 @@
+{
+ "Users": [
+  {
+   "Name": "Daniel",
+   "Email": "dannymohammadi1377@gmail.com",
+   "Password": "123",
+   "Id": 1
+  },
+  {
+   "Name": "Roya",
+   "Email": "roya@gmail.com",
+   "Password": "$2a$10$U2arRO2gM0vtSUGo0Q722eFsP2jnlZtiDmEEG.QFbpdE5MYNTjuvG",
+   "Id": 1
+  },
+  {
+   "Name": "Hesam",
+   "Email": "hesam@gmail.com",
+   "Password": "$2a$10$toMoX0qU1/FU7s7VSZYXOelvvpXgDiByM8yOIn2lflY59o0XGttVe",
+   "Id": 1
+  }
+ ],
+ "Tasks": [
+  {
+   "Name": "read golang",
+   "Dudate": "2024/02/17",
+   "CategoryId": 1,
+   "UserId": 1,
+   "Id": 1,
+   "Isdone": false
+  },
+  {
+   "Name": "buy car",
+   "Dudate": "2024/03/4",
+   "CategoryId": 1,
+   "UserId": 1,
+   "Id": 1,
+   "Isdone": false
+  }
+ ],
+ "CategoryStorage": [
+  {
+   "Title": "personal",
+   "Color": "green",
+   "Id": 1,
+   "UserId": 1
+  },
+  {
+   "Title": "roya-personal",
+   "Color": "red",
+   "Id": 1,
+   "UserId": 1
+  },
+  {
+   "Title": "roya-cat",
+   "Color": "red",
+   "Id": 1,
+   "UserId": 1
+  }
+ ]
+}
