@@ -35,6 +35,12 @@
    "Email": "hh",
    "Password": "$2a$10$FdzJjJHVgpvYI7qotYbc0uVkm8FaFEa5nKxmWPGdIXTYzr/ON7buO",
    "Id": 6
+  },
+  {
+   "Name": "ahmad",
+   "Email": "ahmad@gmail.com",
+   "Password": "$2a$10$bea2tvsne7b81uZjYhN7XumpAvH39UdvORoUtmqiV.fiNc.liRlZq",
+   "Id": 7
   }
  ],
  "Tasks": [
@@ -60,6 +66,14 @@
    "CategoryId": 3,
    "UserId": 4,
    "Id": 3,
+   "Isdone": false
+  },
+  {
+   "Name": "drop up teacher job",
+   "Dudate": "24",
+   "CategoryId": 3,
+   "UserId": 7,
+   "Id": 4,
    "Isdone": false
   }
  ],

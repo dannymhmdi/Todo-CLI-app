@@ -2,19 +2,24 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
-	"io"
 	"log"
+	"mymodule/pkg/entity"
+	"mymodule/pkg/filestore"
 	"os"
 	"strconv"
 )
 
-func main() {
+var (
+	authenticatedUser *entity.User
+	data              = entity.Data{}
+)
 
+func main() {
 	DataFileStore.Load()
+	data = filestore.New()
 	command := flag.String("name", "no command", "what do you want to do")
 	scanner := bufio.NewScanner(os.Stdin)
 	flag.Parse()
@@ -27,55 +32,25 @@ func main() {
 	}
 }
 
-type User struct {
-	Name, Email, Password string
-	Id                    int
-}
-
-type Task struct {
-	Name, Dudate string
-	CategoryId   int
-	UserId       int
-	Id           int
-	Isdone       bool
-}
-
-type Category struct {
-	Title, Color string
-	Id, UserId   int
-}
-
-type Data struct {
-	Users           []User
-	Tasks           []Task
-	CategoryStorage []Category
-}
-
-var (
-	categoryStorage   = []Category{}
-	tasks             = []Task{}
-	users             = []User{}
-	authenticatedUser *User
-	data              = Data{}
-)
-
 type DataStore interface {
-	SaveUser(u User)
-	SaveCategory(c Category)
-	SaveTask(t Task)
+	SaveUser(u entity.User)
+	SaveCategory(c entity.Category)
+	SaveTask(t entity.Task)
 }
 
 type DataLoad interface {
 	Load()
 }
 
-var UserFileStore DataStore = FileStore{
+var UserFileStore DataStore = filestore.FileStore{
 	FilePath: "db.json",
 }
 
-var DataFileStore DataLoad = FileStore{}
+var DataFileStore DataLoad = filestore.FileStore{}
 
 func RunCommand(cmd string) {
+	DataFileStore.Load()
+	data = filestore.New()
 	if cmd != "registerUser" && cmd != "exit" && authenticatedUser == nil {
 		LoginUserHandler()
 		if authenticatedUser == nil {
@@ -94,8 +69,6 @@ func RunCommand(cmd string) {
 		CreateCategoryHandler(UserFileStore)
 	case "registerUser":
 		RegisterUserHandler(UserFileStore)
-	case "login":
-		LoginUserHandler()
 	case "exit":
 		os.Exit(0)
 	default:
@@ -135,7 +108,7 @@ func CreateTaskHandler(store DataStore) {
 	fmt.Println("Enter the date which task must done")
 	scanner.Scan()
 	duedate = scanner.Text()
-	task := Task{
+	task := entity.Task{
 		Name:       name,
 		CategoryId: catId,
 		Dudate:     duedate,
@@ -158,7 +131,7 @@ func CreateCategoryHandler(store DataStore) {
 	fmt.Println("Enter category color")
 	scanner.Scan()
 	color = scanner.Text()
-	c := Category{
+	c := entity.Category{
 		Title:  title,
 		Color:  color,
 		Id:     len(data.CategoryStorage) + 1,
@@ -186,7 +159,7 @@ func RegisterUserHandler(store DataStore) error {
 		return fmt.Errorf("error in hashing password:%v", err)
 	}
 
-	newUser := User{
+	newUser := entity.User{
 		Name:     name,
 		Email:    email,
 		Id:       len(data.Users) + 1,
@@ -195,7 +168,6 @@ func RegisterUserHandler(store DataStore) error {
 
 	store.SaveUser(newUser)
 	fmt.Printf("User %s created successfully\n", name)
-	fmt.Println("users", users)
 	return nil
 
 }
@@ -228,75 +200,11 @@ func LoginUserHandler() {
 
 func ListTask() {
 	userId := authenticatedUser.Id
-	userTasks := []Task{}
+	userTasks := []entity.Task{}
 	for _, task := range data.Tasks {
 		if task.UserId == userId {
 			userTasks = append(userTasks, task)
 		}
 	}
 	fmt.Printf("usersTask = %+v\n", userTasks)
-}
-
-func LoadData() error {
-	file, err := os.Open("db.json")
-	if err != nil {
-		return fmt.Errorf("error in opening file:%v", err)
-
-	}
-	defer file.Close()
-	byteVaue, err := io.ReadAll(file)
-	if err != nil {
-		return fmt.Errorf("error in reading file content:%v", err)
-
-	}
-	err = json.Unmarshal(byteVaue, &data)
-	if err != nil {
-		return fmt.Errorf("error in parsing json file:%v", err)
-	}
-	fmt.Printf("data:%+v\n", data)
-	return nil
-}
-
-func SaveData() error {
-	jsonData, err := json.MarshalIndent(data, "", " ")
-	if err != nil {
-
-		return fmt.Errorf("error in convert data to json:%v", err)
-	}
-	file, err := os.Create("db.json")
-	if err != nil {
-
-		return fmt.Errorf("error in creating or opening existing file:%v", err)
-	}
-	defer file.Close()
-
-	_, err = file.Write(jsonData)
-	if err != nil {
-		return fmt.Errorf("error in writing data to db.json file:%v", err)
-	}
-	fmt.Println("data successfully write to db.json")
-	return nil
-}
-
-type FileStore struct {
-	FilePath string
-}
-
-func (f FileStore) SaveUser(u User) {
-	data.Users = append(data.Users, u)
-	SaveData()
-}
-
-func (f FileStore) SaveCategory(c Category) {
-	data.CategoryStorage = append(data.CategoryStorage, c)
-	SaveData()
-}
-
-func (f FileStore) SaveTask(t Task) {
-	data.Tasks = append(data.Tasks, t)
-	SaveData()
-}
-
-func (f FileStore) Load() {
-	LoadData()
 }
