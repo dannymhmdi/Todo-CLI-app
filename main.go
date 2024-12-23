@@ -14,7 +14,8 @@ import (
 
 func main() {
 
-	LoadData()
+	//LoadData()
+	UserFileStore.Load()
 	command := flag.String("name", "no command", "what do you want to do")
 	scanner := bufio.NewScanner(os.Stdin)
 	flag.Parse()
@@ -59,15 +60,16 @@ var (
 	data              = Data{}
 )
 
-// var categoryStorage = []Category{}
+type DataStore interface {
+	SaveUser(u User)
+	SaveCategory(c Category)
+	SaveTask(t Task)
+	Load()
+}
 
-// var tasks = []Task{}
-
-// var users = []User{}
-
-// var authenticatedUser *User
-
-// var data = Data{}
+var UserFileStore DataStore = FileStore{
+	FilePath: "db.json",
+}
 
 func RunCommand(cmd string) {
 	if cmd != "registerUser" && cmd != "exit" && authenticatedUser == nil {
@@ -81,13 +83,13 @@ func RunCommand(cmd string) {
 	}
 	switch cmd {
 	case "createTask":
-		CreateTaskHandler()
+		CreateTaskHandler(UserFileStore)
 	case "listTask":
 		ListTask()
 	case "createCategory":
-		CreateCategoryHandler()
+		CreateCategoryHandler(UserFileStore)
 	case "registerUser":
-		RegisterUserHandler()
+		RegisterUserHandler(UserFileStore)
 	case "login":
 		LoginUserHandler()
 	case "exit":
@@ -98,7 +100,7 @@ func RunCommand(cmd string) {
 	}
 }
 
-func CreateTaskHandler() {
+func CreateTaskHandler(store DataStore) {
 	scanner := bufio.NewScanner(os.Stdin)
 	var name, duedate string
 	fmt.Println("Enter your task name")
@@ -133,15 +135,15 @@ func CreateTaskHandler() {
 		Name:       name,
 		CategoryId: catId,
 		Dudate:     duedate,
-		Id:         len(tasks) + 1,
+		Id:         len(data.Tasks) + 1,
 		UserId:     authenticatedUser.Id,
 	}
-	data.Tasks = append(data.Tasks, task)
-	SaveData()
+
+	store.SaveTask(task)
 	fmt.Printf("Tasks:%+v\n", tasks)
 }
 
-func CreateCategoryHandler() {
+func CreateCategoryHandler(store DataStore) {
 	fmt.Println("create new category")
 	scanner := bufio.NewScanner(os.Stdin)
 	var title, color string
@@ -155,14 +157,13 @@ func CreateCategoryHandler() {
 	c := Category{
 		Title:  title,
 		Color:  color,
-		Id:     len(categoryStorage) + 1,
+		Id:     len(data.CategoryStorage) + 1,
 		UserId: authenticatedUser.Id,
 	}
-	data.CategoryStorage = append(data.CategoryStorage, c)
-	SaveData()
+	store.SaveCategory(c)
 }
 
-func RegisterUserHandler() error {
+func RegisterUserHandler(store DataStore) error {
 	scanner := bufio.NewScanner(os.Stdin)
 	var name, email, password string
 	fmt.Println("Enter your name")
@@ -184,12 +185,11 @@ func RegisterUserHandler() error {
 	newUser := User{
 		Name:     name,
 		Email:    email,
-		Id:       len(users) + 1,
+		Id:       len(data.Users) + 1,
 		Password: string(hashedPasswrod),
 	}
 
-	data.Users = append(data.Users, newUser)
-	SaveData()
+	store.SaveUser(newUser)
 	fmt.Printf("User %s created successfully\n", name)
 	fmt.Println("users", users)
 	return nil
@@ -279,4 +279,27 @@ func SaveData() error {
 	}
 	fmt.Println("data successfully write to db.json")
 	return nil
+}
+
+type FileStore struct {
+	FilePath string
+}
+
+func (f FileStore) SaveUser(u User) {
+	data.Users = append(data.Users, u)
+	SaveData()
+}
+
+func (f FileStore) SaveCategory(c Category) {
+	data.CategoryStorage = append(data.CategoryStorage, c)
+	SaveData()
+}
+
+func (f FileStore) SaveTask(t Task) {
+	data.Tasks = append(data.Tasks, t)
+	SaveData()
+}
+
+func (f FileStore) Load() {
+	LoadData()
 }
