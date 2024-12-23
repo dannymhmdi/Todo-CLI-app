@@ -14,8 +14,7 @@ import (
 
 func main() {
 
-	//LoadData()
-	UserFileStore.Load()
+	DataFileStore.Load()
 	command := flag.String("name", "no command", "what do you want to do")
 	scanner := bufio.NewScanner(os.Stdin)
 	flag.Parse()
@@ -64,12 +63,17 @@ type DataStore interface {
 	SaveUser(u User)
 	SaveCategory(c Category)
 	SaveTask(t Task)
+}
+
+type DataLoad interface {
 	Load()
 }
 
 var UserFileStore DataStore = FileStore{
 	FilePath: "db.json",
 }
+
+var DataFileStore DataLoad = FileStore{}
 
 func RunCommand(cmd string) {
 	if cmd != "registerUser" && cmd != "exit" && authenticatedUser == nil {
@@ -140,7 +144,7 @@ func CreateTaskHandler(store DataStore) {
 	}
 
 	store.SaveTask(task)
-	fmt.Printf("Tasks:%+v\n", tasks)
+	//fmt.Printf("Tasks:%+v\n", tasks)
 }
 
 func CreateCategoryHandler(store DataStore) {
@@ -220,13 +224,6 @@ func LoginUserHandler() {
 		log.Fatal("password is incorrect")
 	}
 	fmt.Println("You login successfully")
-	// for _, user := range data.Users {
-	// 	if user.Email == username && user.Password == password {
-	// 		authenticatedUser = &user
-	// 		break
-	// 	}
-	//
-
 }
 
 func ListTask() {
