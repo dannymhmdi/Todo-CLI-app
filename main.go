@@ -20,7 +20,7 @@ var (
 )
 
 func main() {
-	fmt.Println(textcolor.Magenta + "welcome to todo app" + textcolor.Reset)
+
 	DataFileStore.Load()
 	data = filestore.New()
 	command := flag.String("name", "no command", "what do you want to do")
