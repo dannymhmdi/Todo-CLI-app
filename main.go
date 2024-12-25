@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"mymodule/pkg/contract"
 	"mymodule/pkg/entity"
 	"mymodule/pkg/filestore"
+	"mymodule/pkg/textcolor"
 	"os"
 	"strconv"
 )
@@ -18,6 +20,7 @@ var (
 )
 
 func main() {
+	fmt.Println(textcolor.Magenta + "welcome to todo app" + textcolor.Reset)
 	DataFileStore.Load()
 	data = filestore.New()
 	command := flag.String("name", "no command", "what do you want to do")
@@ -32,21 +35,11 @@ func main() {
 	}
 }
 
-type DataStore interface {
-	SaveUser(u entity.User)
-	SaveCategory(c entity.Category)
-	SaveTask(t entity.Task)
-}
-
-type DataLoad interface {
-	Load()
-}
-
-var UserFileStore DataStore = filestore.FileStore{
+var UserFileStore contract.DataStore = filestore.FileStore{
 	FilePath: "db.json",
 }
 
-var DataFileStore DataLoad = filestore.FileStore{}
+var DataFileStore contract.DataLoad = filestore.FileStore{}
 
 func RunCommand(cmd string) {
 	DataFileStore.Load()
@@ -77,7 +70,7 @@ func RunCommand(cmd string) {
 	}
 }
 
-func CreateTaskHandler(store DataStore) {
+func CreateTaskHandler(store contract.DataStore) {
 	scanner := bufio.NewScanner(os.Stdin)
 	var name, duedate string
 	fmt.Println("Enter your task name")
@@ -101,7 +94,7 @@ func CreateTaskHandler(store DataStore) {
 	}
 
 	if !catFound {
-		fmt.Println("category not found")
+		fmt.Println(textcolor.Red + "category not found" + textcolor.Reset)
 		return
 	}
 
@@ -117,10 +110,9 @@ func CreateTaskHandler(store DataStore) {
 	}
 
 	store.SaveTask(task)
-	//fmt.Printf("Tasks:%+v\n", tasks)
 }
 
-func CreateCategoryHandler(store DataStore) {
+func CreateCategoryHandler(store contract.DataStore) {
 	fmt.Println("create new category")
 	scanner := bufio.NewScanner(os.Stdin)
 	var title, color string
@@ -140,7 +132,7 @@ func CreateCategoryHandler(store DataStore) {
 	store.SaveCategory(c)
 }
 
-func RegisterUserHandler(store DataStore) error {
+func RegisterUserHandler(store contract.DataStore) error {
 	scanner := bufio.NewScanner(os.Stdin)
 	var name, email, password string
 	fmt.Println("Enter your name")
@@ -154,7 +146,7 @@ func RegisterUserHandler(store DataStore) error {
 	fmt.Println("Please set a password")
 	scanner.Scan()
 	password = scanner.Text()
-	hashedPasswrod, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("error in hashing password:%v", err)
 	}
@@ -163,11 +155,11 @@ func RegisterUserHandler(store DataStore) error {
 		Name:     name,
 		Email:    email,
 		Id:       len(data.Users) + 1,
-		Password: string(hashedPasswrod),
+		Password: string(hashedPassword),
 	}
 
 	store.SaveUser(newUser)
-	fmt.Printf("User %s created successfully\n", name)
+	fmt.Printf(textcolor.Green+"User %s created successfully\n"+textcolor.Reset, name)
 	return nil
 
 }
@@ -185,7 +177,7 @@ func LoginUserHandler() {
 		}
 	}
 	if authenticatedUser == nil {
-		log.Fatal("user not found")
+		log.Fatal(textcolor.Red + "user not found" + textcolor.Reset)
 	}
 
 	fmt.Println("Enter your password")
@@ -193,9 +185,9 @@ func LoginUserHandler() {
 	password = scanner.Text()
 	err := bcrypt.CompareHashAndPassword([]byte(authenticatedUser.Password), []byte(password))
 	if err != nil {
-		log.Fatal("password is incorrect")
+		log.Fatal(textcolor.Red + "password is incorrect" + textcolor.Reset)
 	}
-	fmt.Println("You login successfully")
+	fmt.Println(textcolor.Green + "You login successfully" + textcolor.Reset)
 }
 
 func ListTask() {
@@ -206,5 +198,5 @@ func ListTask() {
 			userTasks = append(userTasks, task)
 		}
 	}
-	fmt.Printf("usersTask = %+v\n", userTasks)
+	fmt.Printf(textcolor.Cyan+"usersTask = %+v\n"+textcolor.Reset, userTasks)
 }
